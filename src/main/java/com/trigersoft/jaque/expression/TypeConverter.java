@@ -67,7 +67,17 @@ final class TypeConverter extends SimpleExpressionVisitor {
 
 		if (from == Integer.TYPE)
 			return convert((Integer) value);
-
+		//<< FIX: Class<T> typed arguments of method call - not sure about correctness >>//
+		if (value instanceof Type) {
+		  Type type = (Type)value;
+		  String className = type.getClassName();
+		  try {
+		    Class<?> klass = this.getClass().getClassLoader().loadClass(className);
+		    return klass;
+		  } catch (ClassNotFoundException e) {
+		      throw new RuntimeException (e);
+		  }
+		}
 		return defaultConvert(value);
 	}
 
