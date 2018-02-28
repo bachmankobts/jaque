@@ -1282,11 +1282,31 @@ public abstract class Expression {
 
 		for (;;) {
 			try {
-				return tmpClass.getDeclaredMethod(name, parameterTypes);
-			} catch (NoSuchMethodException e) {
-				tmpClass = tmpClass.getSuperclass();
+				return tmpClass.getMethod(name, parameterTypes);//<< FIX: replaced getDeclaredMethod otherwise it does not see methods from inherited interfaces. Other solution would be to change the no such method exception handling, by calling getIntefaces() and introspect each >>//
+			    } catch (NoSuchMethodException e) {
+				Class<?> tmpClass2 = tmpClass.getSuperclass();
+				if(tmpClass2 == null)
+				{
+				  if (interfacesStack == null) {
+				    interfacesStack = new Stack<>();
+				  }
+				  // probably extends other interfaces
+				  Class<?>[] interfaces = tmpClass.getInterfaces();
+				  for (Class<?> i : interfaces) {
+				    interfacesStack.add(i);
+				  }
+				  if(!interfacesStack.isEmpty())
+				  {
+				    tmpClass = interfacesStack.pop();
+				  } else {
+				    tmpClass = null;
+				  }
+				} else {
+				  tmpClass = tmpClass2;
+				}
 				if (tmpClass == null)
-					throw e;
+				    throw e;
+			    }
 			}
 		}
 	}
